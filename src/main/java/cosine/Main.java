@@ -42,7 +42,7 @@ public class Main {
     List<Method> methods =
         TermExtractor.fromFile(
             new File(
-                "C:\\Users\\John Y\\cw\\cosine-similarity"));
+                "D:\\Smart_Data\\01312013_spring\\behe\\cosine-similarity"));
 
     /*
      * generate master token list with counts as well as each team appearing in
@@ -78,7 +78,7 @@ public class Main {
      * set size of function Term Frequency matrix using count from above and
      * size of the masterTokenMap
      */
-    Matrix sparseMatrix = new Matrix(count, masterTokenMap.size());
+    Matrix sparseMatrix = new Matrix(count - 21, masterTokenMap.size());
 
     /* generate sparse matrix. */
     int methodCounter = 0;
@@ -91,9 +91,10 @@ public class Main {
             int keySetCounter = 0;
             TreeMap<String, Integer> methodMap =
                 ((MethodDeclaration) member).getMethodTerms();
-            if (methodMap == null) {
+            if (methodMap == null || methodMap.isEmpty()) {
               continue;
             }
+            boolean test = false;
             for (String keys : masterTokenMap.keySet()) {
 
               if (((MethodDeclaration) member).getMethodTerms().containsKey(
@@ -102,9 +103,20 @@ public class Main {
                     methodCounter,
                     keySetCounter,
                     ((MethodDeclaration) member).getMethodTerms().get(keys));
+                if (((MethodDeclaration) member).getMethodTerms().get(keys) != 0) {
+                  test = true;
+                }
+
               }
+
               keySetCounter++;
-            }// end of keyset for
+            }// end of keyset for master token list
+            if (!test) {
+              System.out.println("empty ro in SPARSE matrix created");
+              System.out.println(((MethodDeclaration) member).getMethodTerms());
+              System.out.println(((MethodDeclaration) member).getName());
+            }
+            test = false;
             keySetCounter = 0;
             methodCounter++;
           }// end of if
@@ -117,13 +129,37 @@ public class Main {
         + " "
         + sparseMatrix.getColumnDimension());
 
+    boolean t = false;
+    for (int a = 0; a < sparseMatrix.getRowDimension(); a++) {
+      for (int b = 0; b < sparseMatrix.getColumnDimension(); b++) {
+        if (sparseMatrix.get(a, b) != 0) {
+          t = true;
+        }
+
+      }
+      if (!t) {
+        System.out.println("Found empty row SPARSE MATRIX");
+      }
+      t = false;
+    }
+
     /* create IDF matrix */
     Matrix idf = new Matrix(1, masterTokenMap.size());
     int keySetCounter = 0;
     for (String keys : masterTokenMap.keySet()) {
       // System.out.println(keys);
       int value = masterTokenMap.get(keys);
-      double finalValue = Math.log(count / (1 + value));
+      double test = count / (1 + value);
+
+      double finalValue = Math.log((double) count / (1.0 + (double) value));
+      if (finalValue == 0.0) {
+        System.out.println("this is final Value: " + finalValue);
+        System.out.println("this is count of tokens found: " + value);
+        System.out.println("this is total number of methods: " + count);
+        System.out.println(masterTokenMap.get(keys));
+        System.out.println(keys);
+        System.out.println("this is test: " + test);
+      }
       idf.set(0, keySetCounter, finalValue);
       keySetCounter++;
     }
@@ -132,6 +168,7 @@ public class Main {
         + idf.getRowDimension()
         + " "
         + idf.getColumnDimension());
+
 
     /* generate mxm diagonal matrix from the above idf matrix */
     Matrix idfDiagonal =
@@ -143,6 +180,21 @@ public class Main {
         + idfDiagonal.getRowDimension()
         + " "
         + idfDiagonal.getColumnDimension());
+
+    boolean temp3 = false;
+    for (int a = 0; a < idfDiagonal.getRowDimension(); a++) {
+      for (int b = 0; b < idfDiagonal.getColumnDimension(); b++) {
+        if (idfDiagonal.get(a, b) != 0) {
+          temp3 = true;
+        }
+
+      }
+      if (!temp3) {
+        System.out.println("Found empty row in DIAGONAL MATRIX");
+
+      }
+      temp3 = false;
+    }
 
     // result of doing TF * IDF = finalMatrix
     Matrix finalMatrix = sparseMatrix.times(idfDiagonal);
@@ -156,14 +208,46 @@ public class Main {
         + " "
         + finalMatrix.getColumnDimension());
 
+    boolean temp1 = false;
+    for (int a = 0; a < finalMatrix.getRowDimension(); a++) {
+      for (int b = 0; b < finalMatrix.getColumnDimension(); b++) {
+        if (finalMatrix.get(a, b) != 0) {
+          temp1 = true;
+        }
+
+      }
+      if (!temp1) {
+        System.out.println("Found empty row in Final Matrix");
+
+      }
+      temp1 = false;
+    }
+
     int howManyNulls = 0;
 
     /* normalize finalMatrix */
     for (int i = 0; i < finalMatrix.getRowDimension(); i++) {
       Matrix summationMatrix =
           finalMatrix.getMatrix(i, i, 0, finalMatrix.getColumnDimension() - 1);
+
+      boolean temp2 = false;
+      for (int a = 0; a < summationMatrix.getRowDimension(); a++) {
+        for (int b = 0; b < summationMatrix.getColumnDimension(); b++) {
+          if (summationMatrix.get(a, b) != 0) {
+            temp2 = true;
+          }
+
+        }
+        if (!temp2) {
+          System.out.println("Found empty row in SUMMATION MATRIX");
+
+        }
+        temp2 = false;
+      }
+
       double summationValue = 0;
       for (int x = 0; x < summationMatrix.getColumnDimension(); x++) {
+
         summationValue += Math.pow(summationMatrix.get(0, x), 2);
       }
       double finalSummationValue = Math.sqrt(summationValue);
