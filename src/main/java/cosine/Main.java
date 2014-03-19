@@ -156,6 +156,8 @@ public class Main {
         + " "
         + finalMatrix.getColumnDimension());
 
+    int howManyNulls = 0;
+
     /* normalize finalMatrix */
     for (int i = 0; i < finalMatrix.getRowDimension(); i++) {
       Matrix summationMatrix =
@@ -173,11 +175,16 @@ public class Main {
         double value = finalMatrix.get(i, j);
 
         double normalizedValue = value / finalSummationValue;
+        if (finalSummationValue == 0) {
+          // System.out.println("i: " + i + " j: " + j);
+          howManyNulls++;
+        }
         finalMatrix.set(i, j, normalizedValue);
 
       }
     }
 
+    System.out.println("how many nulls? " + howManyNulls);
     /* Cosine Similarity: dot product between each method in training set */
     Matrix cosineSimilarity =
         new Matrix(finalMatrix.getRowDimension(), finalMatrix.getRowDimension());
@@ -190,14 +197,15 @@ public class Main {
             finalMatrix.getMatrix(j, j, 0, finalMatrix.getRowDimension());
         double[] secondDotArray = secondDot.getRowPackedCopy();
         double dotProduct = dotProduct(firstDotArray, secondDotArray);
-        cosineSimilarity.set(i, j, dotProduct);
-        System.out.println(cosineSimilarity.get(i, j));
-        // System.out.println("Dot Product of row "
-        // + i
-        // + " column "
-        // + j
-        // + ": "
-        // + dotProduct);
+        double acos = Math.acos(dotProduct);
+        double degrees = Math.toDegrees(acos);
+        double percentage = ((180 - degrees) / degrees);
+        cosineSimilarity.set(i, j, percentage);
+        // if (percentage > 50) {
+        // System.out.println(finalMatrix.get(i, j));
+        // System.out.println("i " + i + ", j " + j + " percent: " +
+        // percentage);
+        // }
       }
     }
 
