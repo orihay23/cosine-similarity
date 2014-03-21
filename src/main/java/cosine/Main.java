@@ -12,6 +12,7 @@ import java.util.TreeMap;
 
 import jxl.read.biff.BiffException;
 import Jama.Matrix;
+import Jama.SingularValueDecomposition;
 
 public class Main {
 
@@ -42,7 +43,7 @@ public class Main {
     List<Method> methods =
         TermExtractor.fromFile(
             new File(
-                "D:\\Smart_Data\\01312013_spring\\behe\\cosine-similarity"));
+                "C:\\Users\\John Y\\cw\\cosine-similarity"));
 
     /*
      * generate master token list with counts as well as each team appearing in
@@ -169,7 +170,6 @@ public class Main {
         + " "
         + idf.getColumnDimension());
 
-
     /* generate mxm diagonal matrix from the above idf matrix */
     Matrix idfDiagonal =
         new Matrix(idf.getColumnDimension(), idf.getColumnDimension());
@@ -267,6 +267,18 @@ public class Main {
 
       }
     }
+
+    /* SVD */
+    // Refer to http://introcs.cs.princeton.edu/java/95linear/ "Lena"
+    Matrix transposed = finalMatrix.transpose();
+    int rank = 20;
+    int M = transposed.getRowDimension();
+    int N = transposed.getColumnDimension();
+    SingularValueDecomposition svd = transposed.svd();
+    Matrix Ur = svd.getU().getMatrix(0, M - 1, 0, rank - 1);
+    Matrix Vr = svd.getV().getMatrix(0, N - 1, 0, rank - 1);
+    Matrix Sr = svd.getS().getMatrix(0, rank - 1, 0, rank - 1);
+    Matrix svdOutput = Ur.times(Sr).times(Vr.transpose());
 
     System.out.println("how many nulls? " + howManyNulls);
     /* Cosine Similarity: dot product between each method in training set */
