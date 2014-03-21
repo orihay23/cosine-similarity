@@ -280,30 +280,30 @@ public class Main {
     Matrix Sr = svd.getS().getMatrix(0, rank - 1, 0, rank - 1);
     Matrix svdOutput = Ur.times(Sr).times(Vr.transpose());
 
-    System.out.println("how many nulls? " + howManyNulls);
+    // System.out.println("how many nulls? " + howManyNulls);
     /* Cosine Similarity: dot product between each method in training set */
-    Matrix cosineSimilarity =
-        new Matrix(finalMatrix.getRowDimension(), finalMatrix.getRowDimension());
-    for (int i = 0; i < finalMatrix.getRowDimension(); i++) {
-      Matrix firstDot =
-          finalMatrix.getMatrix(i, i, 0, finalMatrix.getRowDimension());
-      double[] firstDotArray = firstDot.getRowPackedCopy();
-      for (int j = 0; j < finalMatrix.getRowDimension(); j++) {
-        Matrix secondDot =
-            finalMatrix.getMatrix(j, j, 0, finalMatrix.getRowDimension());
-        double[] secondDotArray = secondDot.getRowPackedCopy();
-        double dotProduct = dotProduct(firstDotArray, secondDotArray);
-        double acos = Math.acos(dotProduct);
-        double degrees = Math.toDegrees(acos);
-        double percentage = ((180 - degrees) / degrees);
-        cosineSimilarity.set(i, j, percentage);
-        // if (percentage > 50) {
-        // System.out.println(finalMatrix.get(i, j));
-        // System.out.println("i " + i + ", j " + j + " percent: " +
-        // percentage);
-        // }
-      }
-    }
+    // Matrix cosineSimilarity =
+    // new Matrix(finalMatrix.getRowDimension(), finalMatrix.getRowDimension());
+    // for (int i = 0; i < finalMatrix.getRowDimension(); i++) {
+    // Matrix firstDot =
+    // finalMatrix.getMatrix(i, i, 0, finalMatrix.getRowDimension());
+    // double[] firstDotArray = firstDot.getRowPackedCopy();
+    // for (int j = 0; j < finalMatrix.getRowDimension(); j++) {
+    // Matrix secondDot =
+    // finalMatrix.getMatrix(j, j, 0, finalMatrix.getRowDimension());
+    // double[] secondDotArray = secondDot.getRowPackedCopy();
+    // double dotProduct = dotProduct(firstDotArray, secondDotArray);
+    // double acos = Math.acos(dotProduct);
+    // double degrees = Math.toDegrees(acos);
+    // double percentage = ((180 - degrees) / degrees);
+    // cosineSimilarity.set(i, j, percentage);
+    // // if (percentage > 50) {
+    // // System.out.println(finalMatrix.get(i, j));
+    // // System.out.println("i " + i + ", j " + j + " percent: " +
+    // // percentage);
+    // // }
+    // }
+    // }
 
     //
     // /* 1. Build Class objects from source */
