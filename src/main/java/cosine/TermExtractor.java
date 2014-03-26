@@ -18,7 +18,8 @@ import jxl.read.biff.BiffException;
 public class TermExtractor {
   public static ArrayList<ClassObject> sourceObjects;
 
-  static List<Method> fromFile(File src)
+ // List<Method>
+  static void fromFile(File src)
       throws ParseException,
       IOException, BiffException {
     /* 1. Build Class objects from source */
@@ -33,8 +34,9 @@ public class TermExtractor {
     // sourceObjects,
     // assessment);
 
+    //System.out.println(sourceObjects);
     // Create list of Method where each has a term frequency map
-    List<Method> methods = new ArrayList<Method>();
+  /*  List<Method> methods = new ArrayList<Method>();
     for (ClassObject obj : sourceObjects) {
       obj.setLineNumbersToMethods(generateLineNumToMethod(obj.getCu()));
       HashMap<Integer, String> lineNumbersToMethods =
@@ -49,8 +51,8 @@ public class TermExtractor {
             wordCount));
       }
 
-    }
-    return methods;
+    }*/
+    //return methods;
 
   }
 

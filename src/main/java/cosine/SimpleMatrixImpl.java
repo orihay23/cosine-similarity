@@ -6,11 +6,8 @@ import japa.parser.ast.body.BodyDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.body.TypeDeclaration;
 
-import java.io.BufferedWriter;
 import java.io.File;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -21,11 +18,8 @@ import jxl.read.biff.BiffException;
 import org.ejml.simple.SimpleMatrix;
 
 import Jama.Matrix;
-import Jama.SingularValueDecomposition;
 
-// import org.ejml.simple.SimpleMatrix;
-
-public class Main {
+public class SimpleMatrixImpl {
 
   /**
    * @param args
@@ -105,6 +99,8 @@ public class Main {
      */
     Matrix sparseMatrix = new Matrix(count, masterTokenMap.size());
 
+    SimpleMatrix simpleMatrix = new SimpleMatrix(count, masterTokenMap.size());
+
     /* generate sparse matrix. */
     int methodCounter = 0;
     for (ClassObject co : TermExtractor.sourceObjects) {
@@ -128,7 +124,7 @@ public class Main {
 
               if (((MethodDeclaration) member).getMethodTerms().containsKey(
                   keys)) {
-                sparseMatrix.set(
+                simpleMatrix.set(
                     methodCounter,
                     keySetCounter,
                     ((MethodDeclaration) member).getMethodTerms().get(keys));
@@ -154,14 +150,14 @@ public class Main {
     }// end of outer for
 
     System.out.println("SPARSE MATRIX: "
-        + sparseMatrix.getRowDimension()
+        + simpleMatrix.numRows()
         + " "
-        + sparseMatrix.getColumnDimension());
+        + simpleMatrix.numCols());
 
     boolean t = false;
-    for (int a = 0; a < sparseMatrix.getRowDimension(); a++) {
-      for (int b = 0; b < sparseMatrix.getColumnDimension(); b++) {
-        if (sparseMatrix.get(a, b) != 0) {
+    for (int a = 0; a < simpleMatrix.numRows(); a++) {
+      for (int b = 0; b < simpleMatrix.numCols(); b++) {
+        if (simpleMatrix.get(a, b) != 0) {
           t = true;
         }
 
@@ -173,7 +169,7 @@ public class Main {
     }
 
     /* create IDF matrix */
-    Matrix idf = new Matrix(1, masterTokenMap.size());
+    SimpleMatrix idf = new SimpleMatrix(1, masterTokenMap.size());
     int keySetCounter = 0;
     for (String keys : masterTokenMap.keySet()) {
       // System.out.println(keys);
@@ -194,24 +190,24 @@ public class Main {
     }
 
     System.out.println("IDF MATRIX: "
-        + idf.getRowDimension()
+        + idf.numRows()
         + " "
-        + idf.getColumnDimension());
+        + idf.numCols());
 
     /* generate mxm diagonal matrix from the above idf matrix */
-    Matrix idfDiagonal =
-        new Matrix(idf.getColumnDimension(), idf.getColumnDimension());
-    for (int i = 0; i < idf.getColumnDimension(); i++) {
+    SimpleMatrix idfDiagonal =
+        new SimpleMatrix(idf.numCols(), idf.numCols());
+    for (int i = 0; i < idf.numCols(); i++) {
       idfDiagonal.set(i, i, idf.get(0, i));
     }
     System.out.println("DIAG MATRIX: "
-        + idfDiagonal.getRowDimension()
+        + idfDiagonal.numRows()
         + " "
-        + idfDiagonal.getColumnDimension());
+        + idfDiagonal.numCols());
 
     boolean temp3 = false;
-    for (int a = 0; a < idfDiagonal.getRowDimension(); a++) {
-      for (int b = 0; b < idfDiagonal.getColumnDimension(); b++) {
+    for (int a = 0; a < idfDiagonal.numRows(); a++) {
+      for (int b = 0; b < idfDiagonal.numCols(); b++) {
         if (idfDiagonal.get(a, b) != 0) {
           temp3 = true;
         }
@@ -224,34 +220,24 @@ public class Main {
       temp3 = false;
     }
 
-    System.out.println(Runtime.getRuntime().maxMemory());
+    // System.out.println(Runtime.getRuntime().maxMemory());
     // result of doing TF * IDF = finalMatrix
+    SimpleMatrix finalMatrix = simpleMatrix.mult(idfDiagonal);
 
-    File file1 = new File("sparse.txt");
-    File file2 = new File("idfDiag.txt");
-
-    PrintWriter out =
-        new PrintWriter(new BufferedWriter(new FileWriter("sparse.txt", true)));
-    // sparseMatrix.print(out, 1, 1);
-
-    PrintWriter out2 =
-        new PrintWriter(new BufferedWriter(new FileWriter("idfDiag.txt", true)));
-    idfDiagonal.print(out2, 1, 1);
-
-    Matrix finalMatrix = sparseMatrix.times(idfDiagonal);
+    System.out.println("WE WIN");
 
     // finalMatrix.print(1,1);
     // TODO: Normalize finalMatrix
     // TODO: Cosine Similarity
 
     System.out.println("FINAL MATRIX: "
-        + finalMatrix.getRowDimension()
+        + finalMatrix.numRows()
         + " "
-        + finalMatrix.getColumnDimension());
+        + finalMatrix.numCols());
 
     boolean temp1 = false;
-    for (int a = 0; a < finalMatrix.getRowDimension(); a++) {
-      for (int b = 0; b < finalMatrix.getColumnDimension(); b++) {
+    for (int a = 0; a < finalMatrix.numRows(); a++) {
+      for (int b = 0; b < finalMatrix.numCols(); b++) {
         if (finalMatrix.get(a, b) != 0) {
           temp1 = true;
         }
@@ -267,13 +253,13 @@ public class Main {
     int howManyNulls = 0;
 
     /* normalize finalMatrix */
-    for (int i = 0; i < finalMatrix.getRowDimension(); i++) {
-      Matrix summationMatrix =
-          finalMatrix.getMatrix(i, i, 0, finalMatrix.getColumnDimension() - 1);
+    for (int i = 0; i < finalMatrix.numRows(); i++) {
+      SimpleMatrix summationMatrix =
+          finalMatrix.extractMatrix(i, i, 0, finalMatrix.numCols() - 1);
 
       boolean temp2 = false;
-      for (int a = 0; a < summationMatrix.getRowDimension(); a++) {
-        for (int b = 0; b < summationMatrix.getColumnDimension(); b++) {
+      for (int a = 0; a < summationMatrix.numRows(); a++) {
+        for (int b = 0; b < summationMatrix.numCols(); b++) {
           if (summationMatrix.get(a, b) != 0) {
             temp2 = true;
           }
@@ -287,7 +273,7 @@ public class Main {
       }
 
       double summationValue = 0;
-      for (int x = 0; x < summationMatrix.getColumnDimension(); x++) {
+      for (int x = 0; x < summationMatrix.numCols(); x++) {
 
         summationValue += Math.pow(summationMatrix.get(0, x), 2);
       }
@@ -295,7 +281,7 @@ public class Main {
       // System.out.println("summation Value: " + summationValue);
       // System.out.println("finalSummation Value: " + finalSummationValue);
 
-      for (int j = 0; j < finalMatrix.getColumnDimension(); j++) {
+      for (int j = 0; j < finalMatrix.numCols(); j++) {
 
         double value = finalMatrix.get(i, j);
 
@@ -315,33 +301,23 @@ public class Main {
 
     /* SVD */
     // Refer to http://introcs.cs.princeton.edu/java/95linear/ "Lena"
-    Matrix transposed = finalMatrix.transpose();
-    SimpleMatrix A =
-        new SimpleMatrix(
-            transposed.getRowDimension(),
-            transposed.getColumnDimension(),
-            true,
-            transposed.getRowPackedCopy());
-    System.out.println("got A");
-    SimpleMatrix w = A.svd().getW();
-    double d = w.get(0, 0);
-    double dLast = w.get(w.numRows() - 1, w.numCols() - 1);
-    System.out.println("1st " + d);
-    System.out.println("last " + dLast);
-    System.out.println("got A W");
-    int rank = 20;
-    int M = transposed.getRowDimension();
-    int N = transposed.getColumnDimension();
-    System.out.println("Transposed");
-    System.out.println("Row dimensions: " + transposed.getRowDimension());
-    System.out.println("Col dimensions: " + transposed.getColumnDimension());
-    SingularValueDecomposition svd = transposed.svd();
-    System.out.println("SVD");
-    Matrix Ur = svd.getU().getMatrix(0, M - 1, 0, rank - 1);
-    Matrix Vr = svd.getV().getMatrix(0, N - 1, 0, rank - 1);
-    Matrix Sr = svd.getS().getMatrix(0, rank - 1, 0, rank - 1);
-
-    Matrix svdOutput = Ur.times(Sr).times(Vr.transpose());
+    /*
+     * SimpleMatrix transposed = finalMatrix.transpose(); SimpleMatrix A = new
+     * SimpleMatrix( transposed.numRows(), transposed.numCols(), true,
+     * transposed.getRowPackedCopy()); System.out.println("got A"); SimpleMatrix
+     * w = A.svd().getW(); double d = w.get(0, 0); double dLast =
+     * w.get(w.numRows() - 1, w.numCols() - 1); System.out.println("1st " + d);
+     * System.out.println("last " + dLast); System.out.println("got A W"); int
+     * rank = 20; int M = transposed.getRowDimension(); int N =
+     * transposed.getColumnDimension(); System.out.println("Transposed");
+     * System.out.println("Row dimensions: " + transposed.getRowDimension());
+     * System.out.println("Col dimensions: " + transposed.getColumnDimension());
+     * SingularValueDecomposition svd = transposed.svd();
+     * System.out.println("SVD"); Matrix Ur = svd.getU().getMatrix(0, M - 1, 0,
+     * rank - 1); Matrix Vr = svd.getV().getMatrix(0, N - 1, 0, rank - 1);
+     * Matrix Sr = svd.getS().getMatrix(0, rank - 1, 0, rank - 1); Matrix
+     * svdOutput = Ur.times(Sr).times(Vr.transpose());
+     */
 
     ParseUtility.generateListOfVulnerabilitiesByClass(
         TermExtractor.sourceObjects,

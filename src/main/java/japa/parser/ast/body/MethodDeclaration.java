@@ -50,7 +50,10 @@ public final class MethodDeclaration extends BodyDeclaration {
 
   private TreeMap<String, Integer> methodTerms;
 
-  public MethodDeclaration() {}
+  public boolean isVulnerable;
+ 
+
+public MethodDeclaration() {}
 
   public MethodDeclaration(int modifiers, Type type, String name) {
     this.modifiers = modifiers;
@@ -149,6 +152,14 @@ public final class MethodDeclaration extends BodyDeclaration {
     return name;
   }
 
+  public boolean isVulnerable() {
+		return isVulnerable;
+	}
+
+	public void setVulnerable(boolean isVulnerable) {
+		this.isVulnerable = isVulnerable;
+	}
+  
   public List<Parameter> getParameters() {
     return parameters;
   }

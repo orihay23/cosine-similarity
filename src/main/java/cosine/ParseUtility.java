@@ -106,18 +106,18 @@ public class ParseUtility {
     Sheet sheet = workbook.getSheet(0);
     Cell[] lineNumbers = sheet.getColumn(10);
     Cell[] fileNames = sheet.getColumn(8);
-    // System.out.println("This is the number of rows found with content: " +
-    // fileNames.length);
-    // System.out.println("This is the number of rows found with content LineNumbers: "
-    // + lineNumbers.length);
+//     System.out.println("This is the number of rows found with content: " +
+//     fileNames.length);
+//     System.out.println("This is the number of rows found with content LineNumbers: "
+//     + lineNumbers.length);
 
     for (int i = 1; i < lineNumbers.length; i++) {
-      // System.out.println("This is the interation value: " + i);
+     //  System.out.println("This is the interation value: " + i);
       String stringa1 = lineNumbers[i].getContents();
       String fileName = fileNames[i].getContents().trim();
       if (fileName.isEmpty())
         continue;
-      // System.out.println("excel content: " + fileName);
+     //  System.out.println("excel content: " + fileName);
       for (ClassObject obj : objList) {
         if (fileName.equals(obj.getFileName())
             ||
@@ -131,7 +131,7 @@ public class ParseUtility {
             key.put(fileName, list);
           }
           obj.setVulnerabilities(key);
-          // System.out.println(obj.getVulnerabilities().toString());
+         //  System.out.println(obj.getVulnerabilities().toString());
         } else {}
 
       }// end of inner for
@@ -139,6 +139,9 @@ public class ParseUtility {
     }
   }
 
+  
+  
+  
   /*parses line number from vulernabilities excel sheet:  i.e  75-69,100,1000-1059 = 75,100,1000*/
   public static ArrayList<Integer> parseLineNumbers(String values) {
 
@@ -168,10 +171,16 @@ public class ParseUtility {
 
   public static TreeMap<String, Integer> generateMasterTokenMap() {
     TreeMap<String, Integer> master = new TreeMap<String, Integer>();
+   // System.out.println(TermExtractor.sourceObjects.size());
     for (ClassObject cu : TermExtractor.sourceObjects) {
+    	System.out.println(cu.fileName);
       List<TypeDeclaration> types = cu.getCu().getTypes();
+      if(types == null)continue;
+     // System.out.println(types.size());
       for (TypeDeclaration type : types) {
+    	  
         List<BodyDeclaration> members = type.getMembers();
+        if(members == null)continue;
         for (BodyDeclaration member : members) {
           TreeMap<String, Integer> methodTerms = new TreeMap<String, Integer>();
           if (member instanceof MethodDeclaration) {
@@ -238,15 +247,17 @@ public class ParseUtility {
         new TreeMap<String, ArrayList<Integer>>();
     Workbook workbook =
         Workbook.getWorkbook(new File(
-            "C:\\Users\\550988\\Desktop\\SSAT Analysis\\SRWNM_1_0_3_if-else_BB.xls"));
+        		"E:\\Eclipse Workspace\\cosine-similarity\\src\\main\\resources\\NED_20110420_IA_Assessment_SRWNM_V1_0_2.xls"));//"C:\\Users\\550988\\Desktop\\SSAT Analysis\\SRWNM_1_0_3_if-else_BB.xls"));
     Sheet sheet = workbook.getSheet(0);
-    Cell[] lineNumbers = sheet.getColumn(11);
-    Cell[] fileNames = sheet.getColumn(9);
+    Cell[] lineNumbers = sheet.getColumn(10);
+    Cell[] fileNames = sheet.getColumn(8);
 
     for (int i = 1; i < lineNumbers.length; i++) {
 
       String stringa1 = lineNumbers[i].getContents();
       String fileName = fileNames[i].getContents();
+      System.out.println(stringa1);
+      System.out.println(fileName);
       ArrayList<Integer> list = ParseUtility.parseLineNumbers(stringa1);
       if (key.containsKey(fileName)) {
         key.get(fileName).addAll(list);
